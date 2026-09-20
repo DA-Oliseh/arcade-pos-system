@@ -5,10 +5,24 @@ import pandas as pd
 from database import create_tables
 create_tables()
 st.set_page_config(page_title="Arcade POS System",layout="wide")
+connection = sqlite3.connect("arcade.db")
+cursor = connection.cursor()
+cursor.execute("SELECT * FROM users WHERE username = ?", ("demo",))
+demo_exists = cursor.fetchone()
+
+if not demo_exists:
+    demo_password_hash = bcrypt.hashpw("demo123".encode(), bcrypt.gensalt())
+    cursor.execute(
+        "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+        ("demo", demo_password_hash, "cashier")
+    )
+    connection.commit()
+
+connection.close()
 #First time set-up check
 connection=sqlite3.connect("arcade.db")
 cursor=connection.cursor()
-cursor.execute("SELECT COUNT(*) FROM users")
+cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'admin'")
 user_count=cursor.fetchone()[0]
 connection.close()
 if user_count==0:
